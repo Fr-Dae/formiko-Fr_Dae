@@ -237,7 +237,11 @@ class Renderer(Overlay):
         self.webview.connect("mouse-target-changed", self.on_mouse)
         self.webview.connect("context-menu", self.on_context_menu)
         self.webview.connect("button-release-event", self.on_button_release)
+        self.webview.connect("load-changed", self.on_load_changed)
         self.add(self.webview)
+
+        settings = self.webview.get_settings()
+        settings.set_enable_javascript_markup(False)  # XSS Fix
 
         controller = self.webview.get_find_controller()
         self.search_done = None
@@ -415,6 +419,7 @@ class Renderer(Overlay):
 
     def do_render(self):
         state, html, mime_type = self.render_output()
+        """
         if state:
             if self.pos > 1:     # vim
                 a, b = len(self.src[:self.pos]), len(self.src[self.pos:])
@@ -423,10 +428,15 @@ class Renderer(Overlay):
                 position = self.pos
 
             html += SCROLL % position
+        """
         if html and self.__win.runing:
             file_name = self.file_name or get_home_dir()
             self.webview.load_bytes(Bytes(html.encode("utf-8")),
                                     mime_type, "UTF-8", "file://"+file_name)
+        if state:
+            self.scroll_to_position(self.pos)
+        else:
+            print("no scroll")
 
     def render(self, src, file_name, pos=0):
         self.src = src
@@ -489,4 +499,8 @@ class Renderer(Overlay):
         else:
             position = self.pos
 
+        print('position', position)
         self.webview.run_javascript(JS_SCROLL % position, None, None, None)
+
+    def on_load_changed(self, webview, event):
+        print('load-changed event:', event)

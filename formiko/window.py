@@ -266,6 +266,7 @@ class AppWindow(Gtk.ApplicationWindow):
         self.pref_menu.set_parser(parser)
 
     def on_scroll_changed(self, widget, position):
+        print("on scroll changed position: ", position)
         if self.preferences.auto_scroll:
             self.renderer.scroll_to_position(position)
 
